@@ -1,0 +1,43 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="de.luhmer.livestreaming.CameraViewFragment"
+    android:keepScreenOn="true">
+
+
+    <TextureView
+        android:id="@+id/textureView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+
+    <TextView
+        android:id="@+id/tvInfo"
+        android:layout_width="120dp"
+        android:layout_height="wrap_content"
+        android:gravity="end"
+        android:layout_gravity="start|bottom"
+        android:layout_margin="16dp"
+        android:padding="4dp"
+        android:text="-"
+        android:background="#64ededed"/>
+
+    <TextView
+        android:id="@+id/tvFpsCounter"
+        android:layout_width="70dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end"
+        android:gravity="center"
+        android:background="#64ededed"
+        android:layout_margin="16dp"
+        android:padding="4dp"
+        android:text="FPS: 00.0"/>
+
+    <!--
+    <de.luhmer.livestreaming.mjpeg.MjpegSurfaceView
+        android:id="@+id/mjpegView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+    -->
+
+</FrameLayout>
