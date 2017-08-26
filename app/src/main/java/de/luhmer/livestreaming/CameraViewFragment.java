@@ -1,41 +1,36 @@
 package de.luhmer.livestreaming;
 
 import android.app.Activity;
-import android.app.Instrumentation;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.SurfaceTexture;
 import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.SupportActivity;
+import android.support.v4.app.ShareCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
-import android.webkit.WebChromeClient;
-import android.webkit.WebView;
-import android.webkit.WebViewClient;
+import android.widget.CompoundButton;
 import android.widget.TextView;
-import android.widget.Toast;
+import android.widget.ToggleButton;
 
+import java.io.IOException;
 import java.net.URI;
 
-import de.luhmer.livestreaming.mjpeg.DisplayMode;
-import de.luhmer.livestreaming.mjpeg.Mjpeg;
-import de.luhmer.livestreaming.mjpeg.MjpegInputStream;
-import de.luhmer.livestreaming.mjpeg.MjpegSurfaceView;
+import de.luhmer.livestreaming.h264.H264UDPSocket;
+import de.luhmer.livestreaming.h264.UdpReceiverDecoderThread;
+import de.luhmer.livestreaming.helper.Debouncer;
 import de.luhmer.livestreaming.mjpeg.WebSocketClient;
-import io.reactivex.annotations.NonNull;
-import io.reactivex.functions.Consumer;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -59,23 +54,30 @@ public class CameraViewFragment extends Fragment {
     private static final String TAG = CameraViewFragment.class.getCanonicalName();
 
     private String mIp;
-    private int mWidth;
-    private int mHeight;
+    private int mVideoWidth;
+    private int mVideoHeight;
     //private Mjpeg mjpeg;
     //MjpegSurfaceView mjpegView;
     //private WebView webView;
     private TextureView mTextureView;
     private TextView mTvFpsCounter;
-    private TextView tvInfo;
+    private TextView mTvInfo;
+    private ToggleButton mToggleButtonFlip;
+    //private View mViewIndicator;
 
     private OnFragmentInteractionListener mListener;
 
     private Thread decoderThread;
     private InfoWebSocketThread infoWebSocketThread;
     private WebSocketClient wsc;
+    //private H264UDPSocket wsc;
     private boolean isInfoWsConnected = false;
 
+    private Debouncer<Integer> debouncer;
 
+    private int colorGreen = Color.parseColor("#64ededed");
+    //private int colorGreen = Color.parseColor("#00d80e");
+    private int colorRed   = Color.parseColor("#e50000");
 
     public CameraViewFragment() {
         // Required empty public constructor
@@ -102,11 +104,21 @@ public class CameraViewFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        mIp     = getArguments().getString(ARG_IP);
-        mWidth  = getArguments().getInt(ARG_WIDTH);
-        mHeight = getArguments().getInt(ARG_HEIGHT);
+        mIp          = getArguments().getString(ARG_IP);
+        mVideoWidth  = getArguments().getInt(ARG_WIDTH);
+        mVideoHeight = getArguments().getInt(ARG_HEIGHT);
 
-        setRetainInstance(true);
+        debouncer = new Debouncer<>(new Debouncer.Callback<Integer>() {
+            @Override
+            public void call(Integer key) {
+                //Log.d(TAG, "Delay detected!!");
+
+                //mViewIndicator.setBackgroundColor(colorRed);
+                mTvInfo.setBackgroundColor(colorRed);
+            }
+        }, 150);
+
+        setRetainInstance(false);
     }
 
     @Override
@@ -115,34 +127,32 @@ public class CameraViewFragment extends Fragment {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_camera_view, container, false);
 
-        mTvFpsCounter = (TextView) view.findViewById(R.id.tvFpsCounter);
-        mTextureView = (TextureView) view.findViewById(R.id.textureView);
-        tvInfo    = (TextView) view.findViewById(R.id.tvInfo);
-
-
+        mTvFpsCounter     = (TextView) view.findViewById(R.id.tvFpsCounter);
+        mTextureView      = (TextureView) view.findViewById(R.id.textureView);
+        mTvInfo           = (TextView) view.findViewById(R.id.tvInfo);
+        mToggleButtonFlip = (ToggleButton) view.findViewById(R.id.toggleButtonFlip);
+        //mViewIndicator    = view.findViewById(R.id.viewIndicator);
 
         final String wsuri = "ws://" + mIp + ":8084";
 
         mTextureView.setSurfaceTextureListener(new TextureView.SurfaceTextureListener() {
-
-            int widthVideo = mWidth;
-            int heightVideo = mHeight;
-
             long lastFpsTime = 0;
             int frames = 0;
 
             @Override
-            public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, final int height) {
+            public void onSurfaceTextureAvailable(final SurfaceTexture surface, final int width, final int height) {
                 Log.d(TAG, "onSurfaceTextureAvailable() called with: surface = [" + surface + "], width = [" + width + "], height = [" + height + "]");
-                adjustAspectRatio(widthVideo, heightVideo);
+                adjustAspectRatio(mVideoWidth, mVideoHeight);
 
                 wsc = new WebSocketClient(new Surface(surface), PreferenceManager.getDefaultSharedPreferences(getActivity()), URI.create(wsuri));
+                //wsc = new H264UDPSocket(new Surface(surface), PreferenceManager.getDefaultSharedPreferences(getActivity()), width, height);
 
                 decoderThread = new Thread(new Runnable() {
                     @Override
                     public void run() {
                         try {
-                            wsc.connect(widthVideo, heightVideo);
+                            Thread.sleep(1000); // Wait for socket to close (on rotation change)
+                            wsc.connect(mVideoWidth, mVideoHeight);
                         } catch (final Exception e) {
                             e.printStackTrace();
 
@@ -184,7 +194,7 @@ public class CameraViewFragment extends Fragment {
             @Override
             public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width, int height) {
                 Log.d(TAG, "onSurfaceTextureSizeChanged() called with: surface = [" + surface + "], width = [" + width + "], height = [" + height + "]");
-                adjustAspectRatio(widthVideo, heightVideo);
+                adjustAspectRatio(mVideoWidth, mVideoHeight);
             }
 
             @Override
@@ -209,6 +219,20 @@ public class CameraViewFragment extends Fragment {
                     lastFpsTime = currentTime;
                     frames = 0;
                 }
+
+                if(debouncer.call(0)) {
+                    //mViewIndicator.setBackgroundColor(colorGreen);
+                    mTvInfo.setBackgroundColor(colorGreen);
+                }
+            }
+        });
+
+        mToggleButtonFlip.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                int flipper = mToggleButtonFlip.isChecked() ? -1 : 1;
+                Log.d(TAG, "Flipper: " + flipper);
+                mTextureView.setScaleX(flipper);
             }
         });
 
@@ -356,24 +380,13 @@ public class CameraViewFragment extends Fragment {
 
         Matrix txform = new Matrix();
         mTextureView.getTransform(txform);
-        txform.setScale((float) newWidth / viewWidth, (float) newHeight / viewHeight);
+        float xScale = (float) newWidth / viewWidth;
+        float yScale = (float) newHeight / viewHeight;
+        txform.setScale(xScale, yScale);
         //txform.postRotate(10);          // just for fun
         txform.postTranslate(xoff, yoff);
         mTextureView.setTransform(txform);
     }
-
-
-    /*
-    private void navigateBack() {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                Instrumentation inst = new Instrumentation();
-                inst.sendKeyDownUpSync(KeyEvent.KEYCODE_BACK);
-            }
-        }).start();
-    }*/
-
 
     class InfoWebSocketThread extends Thread {
 
@@ -458,7 +471,7 @@ public class CameraViewFragment extends Fragment {
                 activity.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        tvInfo.setText(text);
+                        mTvInfo.setText(text);
                     }
                 });
             }

@@ -3,7 +3,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="de.luhmer.livestreaming.CameraViewFragment"
-    android:keepScreenOn="true">
+    android:keepScreenOn="true"
+    android:background="#000">
 
 
     <TextureView
@@ -11,16 +12,14 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>
 
-    <TextView
-        android:id="@+id/tvInfo"
-        android:layout_width="120dp"
-        android:layout_height="wrap_content"
-        android:gravity="end"
-        android:layout_gravity="start|bottom"
-        android:layout_margin="16dp"
-        android:padding="4dp"
-        android:text="-"
-        android:background="#64ededed"/>
+    <!--
+    <View
+        android:id="@+id/viewIndicator"
+        android:layout_width="16dp"
+        android:layout_height="16dp"
+        android:layout_gravity="end"
+        android:background="#fff"/>
+    -->
 
     <TextView
         android:id="@+id/tvFpsCounter"
@@ -31,7 +30,26 @@
         android:background="#64ededed"
         android:layout_margin="16dp"
         android:padding="4dp"
+        android:textColor="#dadada"
         android:text="FPS: 00.0"/>
+
+    <ToggleButton
+        android:id="@+id/toggleButtonFlip"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+
+    <TextView
+        android:id="@+id/tvInfo"
+        android:layout_width="140dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="start|bottom"
+        android:layout_margin="16dp"
+        android:background="#64ededed"
+        android:gravity="end"
+        android:padding="4dp"
+        android:text="-"
+        android:textColor="#dadada" />
+
 
     <!--
     <de.luhmer.livestreaming.mjpeg.MjpegSurfaceView

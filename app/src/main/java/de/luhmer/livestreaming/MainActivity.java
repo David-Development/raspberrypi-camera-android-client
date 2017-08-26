@@ -80,9 +80,7 @@ public class MainActivity extends AppCompatActivity implements CameraListFragmen
 
 
         //onListClickInteraction(new CameraItems.CameraItem("1", "192.168.10.41", true));
-        //openFragment(CameraViewFragment.newInstance("192.168.10.41"));
-        //openFragment(CameraViewFragment.newInstance("192.168.43.169"));
-        //openFragment(CameraH264Fragment.newInstance());
+        //onListClickInteraction(new CameraItems.CameraItem("1", "192.168.43.169", true));
     }
 
     @Override
@@ -177,7 +175,10 @@ public class MainActivity extends AppCompatActivity implements CameraListFragmen
                     if(exception != null) {
                         Toast.makeText(MainActivity.this, exception.getMessage(), Toast.LENGTH_LONG).show();
                     }
-                    pd.dismiss();
+
+                    if(pd.isShowing()) {
+                        pd.dismiss();
+                    }
                 }
             }, command, timeout).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
         }

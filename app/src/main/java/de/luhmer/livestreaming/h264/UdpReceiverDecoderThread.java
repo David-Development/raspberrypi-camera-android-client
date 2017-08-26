@@ -187,12 +187,17 @@ public class UdpReceiverDecoderThread {
         //receiveFromFile("Download/rpi960mal810.h264");
         //receiveFromFile("Download/sample.h264");
         //receiveFromFile("Download/sample (1).h264");
-        //receiveFromUDP();
-        receiveFromInputStream();
+        if(inputStream == null) {
+            Log.d(TAG, "Using UDP!!");
+            receiveFromUDP();
+        } else {
+            Log.d(TAG, "Using WebSocket Input Stream!!");
+            receiveFromInputStream();
+        }
     }
 
-    InputStream inputStream;
-    public void InputStream(InputStream inputStream) {
+    private InputStream inputStream;
+    public void setInputStream(InputStream inputStream) {
         this.inputStream = inputStream;
     }
 
