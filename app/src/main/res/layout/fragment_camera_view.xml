@@ -34,9 +34,15 @@
         android:text="FPS: 00.0"/>
 
     <ToggleButton
-        android:id="@+id/toggleButtonFlip"
-        android:layout_width="wrap_content"
+        android:id="@+id/toggleButtonVFlip"
+        android:layout_width="100dp"
         android:layout_height="wrap_content"/>
+
+    <ToggleButton
+        android:id="@+id/toggleButtonHFlip"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="100dp"/>
 
     <TextView
         android:id="@+id/tvInfo"

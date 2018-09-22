@@ -12,16 +12,21 @@ import android.util.Log;
 import android.view.Surface;
 import android.widget.Toast;
 
+import java.io.BufferedReader;
+import java.io.DataInputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.InetAddress;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
+import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 
 /*
@@ -188,12 +193,18 @@ public class UdpReceiverDecoderThread {
         //receiveFromFile("Download/sample.h264");
         //receiveFromFile("Download/sample (1).h264");
         if(inputStream == null) {
-            Log.d(TAG, "Using UDP!!");
-            receiveFromUDP();
+            Log.d(TAG, "Using TCP!! Receiving from IP: " + this.ip + " - Port: 2222");
+            //receiveFromUDP();
+            receiveFromTCP(ip, 2222);
         } else {
             Log.d(TAG, "Using WebSocket Input Stream!!");
             receiveFromInputStream();
         }
+    }
+
+    private String ip;
+    public void setIp(String ip) {
+        this.ip = ip;
     }
 
     private InputStream inputStream;
@@ -201,6 +212,45 @@ public class UdpReceiverDecoderThread {
         this.inputStream = inputStream;
     }
 
+
+    // raspivid -t 0 -w 800 -h 600 -fps 25 -o - | nc -k -l -p 2222
+    private void receiveFromTCP(String ip, int port) {
+        byte[] message = new byte[1024];
+        try {
+            Socket tcpsocket = new Socket(ip, port);
+            DataInputStream is = new DataInputStream(tcpsocket.getInputStream());
+
+            while (running) {
+                int length = is.read(message);
+                parseDatagram(message, length);
+                //Log.d(TAG, "Received message");
+            }
+
+        } catch (SocketException e) {
+            e.printStackTrace();
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        Log.d(TAG, "Exit stream");
+
+        if (s != null) {
+            s.close();
+        }
+        if(mStreamToFileRecorder != null) {
+            mStreamToFileRecorder.stop();
+        }
+
+        if(decoder != null){
+            decoder.flush();
+            decoder.stop();
+            decoder.release();
+        }
+    }
+
+    // raspivid -t 0 -w 800 -h 600 -fps 25 -o - | nc -u 192.168.43.1 2004
     private void receiveFromUDP() {
         int server_port = this.port;
         byte[] message = new byte[1024];

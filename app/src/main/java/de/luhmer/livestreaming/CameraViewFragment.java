@@ -10,7 +10,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.ShareCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -24,13 +23,8 @@ import android.widget.CompoundButton;
 import android.widget.TextView;
 import android.widget.ToggleButton;
 
-import java.io.IOException;
-import java.net.URI;
-
-import de.luhmer.livestreaming.h264.H264UDPSocket;
-import de.luhmer.livestreaming.h264.UdpReceiverDecoderThread;
+import de.luhmer.livestreaming.h264.H264TCPSocket;
 import de.luhmer.livestreaming.helper.Debouncer;
-import de.luhmer.livestreaming.mjpeg.WebSocketClient;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -62,15 +56,14 @@ public class CameraViewFragment extends Fragment {
     private TextureView mTextureView;
     private TextView mTvFpsCounter;
     private TextView mTvInfo;
-    private ToggleButton mToggleButtonFlip;
+    private ToggleButton mToggleButtonVFlip;
+    private ToggleButton mToggleButtonHFlip;
     //private View mViewIndicator;
 
     private OnFragmentInteractionListener mListener;
 
     private Thread decoderThread;
     private InfoWebSocketThread infoWebSocketThread;
-    private WebSocketClient wsc;
-    //private H264UDPSocket wsc;
     private boolean isInfoWsConnected = false;
 
     private Debouncer<Integer> debouncer;
@@ -121,6 +114,10 @@ public class CameraViewFragment extends Fragment {
         setRetainInstance(false);
     }
 
+    //private WebSocketClient wsc;
+    private H264TCPSocket wsc;
+
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -130,7 +127,8 @@ public class CameraViewFragment extends Fragment {
         mTvFpsCounter     = (TextView) view.findViewById(R.id.tvFpsCounter);
         mTextureView      = (TextureView) view.findViewById(R.id.textureView);
         mTvInfo           = (TextView) view.findViewById(R.id.tvInfo);
-        mToggleButtonFlip = (ToggleButton) view.findViewById(R.id.toggleButtonFlip);
+        mToggleButtonVFlip = (ToggleButton) view.findViewById(R.id.toggleButtonVFlip);
+        mToggleButtonHFlip = (ToggleButton) view.findViewById(R.id.toggleButtonHFlip);
         //mViewIndicator    = view.findViewById(R.id.viewIndicator);
 
         final String wsuri = "ws://" + mIp + ":8084";
@@ -144,8 +142,8 @@ public class CameraViewFragment extends Fragment {
                 Log.d(TAG, "onSurfaceTextureAvailable() called with: surface = [" + surface + "], width = [" + width + "], height = [" + height + "]");
                 adjustAspectRatio(mVideoWidth, mVideoHeight);
 
-                wsc = new WebSocketClient(new Surface(surface), PreferenceManager.getDefaultSharedPreferences(getActivity()), URI.create(wsuri));
-                //wsc = new H264UDPSocket(new Surface(surface), PreferenceManager.getDefaultSharedPreferences(getActivity()), width, height);
+                //wsc = new WebSocketClient(new Surface(surface), PreferenceManager.getDefaultSharedPreferences(getActivity()), URI.create(wsuri));
+                wsc = new H264TCPSocket(new Surface(surface), PreferenceManager.getDefaultSharedPreferences(getActivity()), width, height, mIp);
 
                 decoderThread = new Thread(new Runnable() {
                     @Override
@@ -188,6 +186,9 @@ public class CameraViewFragment extends Fragment {
 
                 if(isInfoWsConnected && !decoderThread.isAlive()) {
                     decoderThread.start();
+                } else if(wsc instanceof H264TCPSocket) {
+                    Log.d(TAG, "Starting thread anyways... TODO remove this exception!!!!");
+                    decoderThread.start();
                 }
             }
 
@@ -227,12 +228,21 @@ public class CameraViewFragment extends Fragment {
             }
         });
 
-        mToggleButtonFlip.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        mToggleButtonVFlip.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                int flipper = mToggleButtonFlip.isChecked() ? -1 : 1;
-                Log.d(TAG, "Flipper: " + flipper);
+                int flipper = mToggleButtonVFlip.isChecked() ? -1 : 1;
+                Log.d(TAG, "FlipperX: " + flipper);
                 mTextureView.setScaleX(flipper);
+            }
+        });
+
+        mToggleButtonHFlip.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                int flipper = mToggleButtonHFlip.isChecked() ? -1 : 1;
+                Log.d(TAG, "FlipperY: " + flipper);
+                mTextureView.setScaleY(flipper);
             }
         });
 
@@ -421,6 +431,9 @@ public class CameraViewFragment extends Fragment {
             @Override
             public void onOpen(WebSocket webSocket, Response response) {
                 Log.d(TAG, "onOpen() called with: webSocket = [" + webSocket + "], response = [" + response + "]");
+
+                String val =  "Camera-Width: " + mVideoWidth + " Camera-Height: " + mVideoHeight;
+                webSocket.send(val);
 
                 isInfoWsConnected = true;
                 if(decoderThread != null && !decoderThread.isAlive()) {
