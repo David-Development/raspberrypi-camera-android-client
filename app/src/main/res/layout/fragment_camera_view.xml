@@ -56,12 +56,4 @@
         android:text="-"
         android:textColor="#dadada" />
 
-
-    <!--
-    <de.luhmer.livestreaming.mjpeg.MjpegSurfaceView
-        android:id="@+id/mjpegView"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" />
-    -->
-
 </FrameLayout>
