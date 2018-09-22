@@ -124,8 +124,8 @@ public class MainActivity extends AppCompatActivity implements CameraListFragmen
     @Override
     public void onListLongClickInteraction(final CameraItems.CameraItem item) {
         new AlertDialog.Builder(this)
-                .setTitle("Warnung")
-                .setMessage("Was möchten Sie tun?")
+                .setTitle("Warning")
+                .setMessage("What would you like to do?")
                 .setPositiveButton("Shutdown", new ShutdownRestartListener(item.ip, "shutdown -h now", 15))
                 .setNegativeButton("Reboot", new ShutdownRestartListener(item.ip, "reboot", 30))
                 .setNeutralButton("Abort", null)
@@ -152,7 +152,7 @@ public class MainActivity extends AppCompatActivity implements CameraListFragmen
         @Override
         public void onClick(DialogInterface dialog, int which) {
             final ProgressDialog pd = new ProgressDialog(MainActivity.this);
-            pd.setTitle("Bitte warten");
+            pd.setTitle("Please wait");
             //pd.setMessage("message");
             //pd.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
             pd.setIndeterminate(true);
