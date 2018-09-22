@@ -1,7 +1,6 @@
 package de.luhmer.livestreaming.helper;
 
 import android.os.AsyncTask;
-import android.telecom.Call;
 import android.util.Log;
 
 import com.jcraft.jsch.Channel;
@@ -9,10 +8,8 @@ import com.jcraft.jsch.ChannelExec;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.Session;
 
-import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
 
 /**
  * Created by david on 06.07.17.

@@ -8,7 +8,6 @@ import android.support.v4.app.Fragment;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,8 +21,6 @@ import de.luhmer.livestreaming.adapter.MyCameraListRecyclerViewAdapter;
 import de.luhmer.livestreaming.helper.AsyncTaskScanClients;
 import de.luhmer.livestreaming.helper.ClientScanResult;
 import de.luhmer.livestreaming.models.CameraItems;
-
-import static android.content.ContentValues.TAG;
 
 /**
  * A fragment representing a list of Items.

@@ -1,8 +1,6 @@
 package de.luhmer.livestreaming.helper;
 
-import android.content.pm.PackageManager;
 import android.net.TrafficStats;
-import android.telecom.Call;
 
 import java.util.Timer;
 import java.util.TimerTask;

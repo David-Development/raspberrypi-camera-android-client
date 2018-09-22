@@ -7,9 +7,6 @@ import android.util.Log;
 import java.util.ArrayList;
 import java.util.List;
 
-import de.luhmer.livestreaming.helper.ClientScanResult;
-import de.luhmer.livestreaming.helper.WifiApManager;
-
 import static android.content.ContentValues.TAG;
 
 /**

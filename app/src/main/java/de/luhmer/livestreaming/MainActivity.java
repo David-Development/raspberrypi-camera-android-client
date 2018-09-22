@@ -14,7 +14,6 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.widget.TextView;
@@ -25,12 +24,6 @@ import java.lang.reflect.Method;
 import de.luhmer.livestreaming.helper.SshClient;
 import de.luhmer.livestreaming.helper.TrafficManager;
 import de.luhmer.livestreaming.models.CameraItems;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
-import okhttp3.WebSocket;
-import okhttp3.WebSocketListener;
-import okio.ByteString;
 
 public class MainActivity extends AppCompatActivity implements CameraListFragment.OnListFragmentInteractionListener, CameraViewFragment.OnFragmentInteractionListener {
 

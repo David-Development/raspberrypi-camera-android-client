@@ -4,7 +4,6 @@ import android.content.SharedPreferences;
 import android.view.Surface;
 
 import java.io.IOException;
-import java.io.InputStream;
 
 /**
  * Created by david on 19.07.17.

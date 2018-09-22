@@ -1,28 +1,21 @@
 package de.luhmer.livestreaming.h264;
 
-import android.app.Activity;
-import android.content.Context;
 import android.content.SharedPreferences;
 import android.media.MediaCodec;
 import android.media.MediaCodec.CodecException;
 import android.media.MediaFormat;
 import android.os.Environment;
-import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.Surface;
-import android.widget.Toast;
 
-import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
-import java.net.InetAddress;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;

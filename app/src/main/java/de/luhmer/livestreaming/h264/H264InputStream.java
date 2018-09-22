@@ -1,6 +1,5 @@
 package de.luhmer.livestreaming.h264;
 
-import android.content.Context;
 import android.content.SharedPreferences;
 import android.view.Surface;
 
